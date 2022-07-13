@@ -92,3 +92,50 @@ contract VectorStrategyForSAV2 is VariableRewardsStrategyForSA {
         return IVectorPoolHelperV2(helper);
     }
 }
+
+import "forge-std/Script.sol";
+import "forge-std/console.sol";
+
+contract VectorStrategyForSAV2StakedAvaxScript is Script {
+    function run() external {
+        console.log("msg.sender", msg.sender);
+
+        vm.broadcast();
+        VariableRewardsStrategy.RewardSwapPairs[]
+            memory _rewardSwapPairs = new VariableRewardsStrategy.RewardSwapPairs[](3);
+        VariableRewardsStrategy.RewardSwapPairs memory _ptpSwapPair = VariableRewardsStrategy.RewardSwapPairs({
+            reward: 0x22d4002028f537599bE9f666d1c4Fa138522f9c8,
+            swapPair: 0xCDFD91eEa657cc2701117fe9711C9a4F61FEED23
+        });
+        VariableRewardsStrategy.RewardSwapPairs memory _vtxSwapPair = VariableRewardsStrategy.RewardSwapPairs({
+            reward: 0x5817D4F0b62A59b17f75207DA1848C2cE75e7AF4,
+            swapPair: 0x9EF0C12b787F90F59cBBE0b611B82D30CAB92929
+        });
+        VariableRewardsStrategy.RewardSwapPairs memory _qiSwapPair = VariableRewardsStrategy.RewardSwapPairs({
+            reward: 0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5,
+            swapPair: 0xE530dC2095Ef5653205CF5ea79F8979a7028065c
+        });
+        _rewardSwapPairs[0] = _ptpSwapPair;
+        _rewardSwapPairs[1] = _vtxSwapPair;
+        _rewardSwapPairs[2] = _qiSwapPair;
+
+        YakStrategyV2.StrategySettings memory _strategySettings = YakStrategyV2.StrategySettings({
+            minTokensToReinvest: 0,
+            devFeeBips: 0,
+            reinvestRewardBips: 0
+        });
+
+        VectorStrategyForSAV2 strat = new VectorStrategyForSAV2(
+            "yy sAVAX Vector No Fee", // string memory _name,
+            // sAVAX
+            0x2b2C81e08f1Af8835a78Bb2A90AE924ACE0eA4bE, // address _depositToken,
+            0x4b946c91C2B1a7d7C40FB3C130CdfBaf8389094d, // address _swapPairDepositToken,
+            _rewardSwapPairs, // RewardSwapPairs[] memory _rewardSwapPairs,
+            0x8B3d9F0017FA369cD8C164D0Cc078bf4cA588aE5, // address _stakingContract,
+            msg.sender,
+            _strategySettings // StrategySettings memory _strategySettings
+        );
+
+        console.log("strat", address(strat));
+    }
+}

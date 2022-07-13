@@ -43,7 +43,7 @@ abstract contract VariableRewardsStrategy is YakStrategyV2 {
         name = _name;
         depositToken = IERC20(_depositToken);
         rewardToken = IERC20(address(WAVAX));
-        devAddr = 0x2D580F9CF2fB2D09BC411532988F2aFdA4E7BefF;
+        devAddr = msg.sender;
 
         for (uint256 i = 0; i < _rewardSwapPairs.length; i++) {
             _addReward(_rewardSwapPairs[i].reward, _rewardSwapPairs[i].swapPair);
