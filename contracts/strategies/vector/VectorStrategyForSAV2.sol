@@ -17,7 +17,6 @@ contract VectorStrategyForSAV2 is VariableRewardsStrategyForSA {
     IERC20 private constant VTX = IERC20(0x5817D4F0b62A59b17f75207DA1848C2cE75e7AF4);
 
     IVectorMainStaking public immutable vectorMainStaking;
-    IBoosterFeeCollector public boosterFeeCollector;
 
     constructor(
         string memory _name,
@@ -25,7 +24,6 @@ contract VectorStrategyForSAV2 is VariableRewardsStrategyForSA {
         address _swapPairDepositToken,
         RewardSwapPairs[] memory _rewardSwapPairs,
         address _stakingContract,
-        address _boosterFeeCollector,
         address _timelock,
         StrategySettings memory _strategySettings
     )
@@ -39,11 +37,6 @@ contract VectorStrategyForSAV2 is VariableRewardsStrategyForSA {
         )
     {
         vectorMainStaking = IVectorMainStaking(_stakingContract);
-        boosterFeeCollector = IBoosterFeeCollector(_boosterFeeCollector);
-    }
-
-    function updateBoosterFeeCollector(address _collector) public onlyOwner {
-        boosterFeeCollector = IBoosterFeeCollector(_collector);
     }
 
     function _depositToStakingContract(uint256 _amount) internal override {
@@ -71,8 +64,7 @@ contract VectorStrategyForSAV2 is VariableRewardsStrategyForSA {
         uint256 count = rewardCount;
         Reward[] memory pendingRewards = new Reward[](count);
         (uint256 pendingVTX, uint256 pendingPTP) = vectorPoolHelper.earned(address(PTP));
-        uint256 boostFee = boosterFeeCollector.calculateBoostFee(address(this), pendingPTP);
-        pendingRewards[0] = Reward({reward: address(PTP), amount: pendingPTP.sub(boostFee)});
+        pendingRewards[0] = Reward({reward: address(PTP), amount: pendingPTP});
         pendingRewards[1] = Reward({reward: address(VTX), amount: pendingVTX});
         uint256 offset = 2;
         for (uint256 i = 0; i < count; i++) {
@@ -88,11 +80,7 @@ contract VectorStrategyForSAV2 is VariableRewardsStrategyForSA {
     }
 
     function _getRewards() internal override {
-        uint256 ptpBalanceBefore = PTP.balanceOf(address(this));
         _vectorPoolHelper().getReward();
-        uint256 amount = PTP.balanceOf(address(this)).sub(ptpBalanceBefore);
-        uint256 boostFee = boosterFeeCollector.calculateBoostFee(address(this), amount);
-        PTP.safeTransfer(address(boosterFeeCollector), boostFee);
     }
 
     function totalDeposits() public view override returns (uint256) {
